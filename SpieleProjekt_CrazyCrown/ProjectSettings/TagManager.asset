@@ -3,7 +3,18 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Edding
+  - Edding_UI
+  - Egg
+  - Egg_UI
+  - Crown
+  - Crown_UI
+  - VomitPowder
+  - VomitPowder_UI
+  - Portrait_Smear
+  - Portrait_Normal
+  - Wall
   layers:
   - Default
   - TransparentFX

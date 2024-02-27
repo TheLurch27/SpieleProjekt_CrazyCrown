@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,7 +12,6 @@ public class PlayerController : MonoBehaviour
 
     public float moveSpeed = 5f;
     public float sneakSpeed = 2f;
-    public float pickupRadius = 1.5f;
 
     private Vector2 moveInput;
 
@@ -29,12 +27,13 @@ public class PlayerController : MonoBehaviour
         inputSystem.Enable();
         inputSystem.CharacterInput.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         inputSystem.CharacterInput.Move.canceled += ctx => moveInput = Vector2.zero;
-        inputSystem.CharacterInput.Salute.started += ctx => StartSalute();
-        inputSystem.CharacterInput.Salute.canceled += ctx => EndSalute();
-        inputSystem.CharacterInput.Crouch.started += ctx => StartSneak();
-        inputSystem.CharacterInput.Crouch.canceled += ctx => EndSneak();
         inputSystem.CharacterInput.Interact.started += ctx => StartInteract();
         inputSystem.CharacterInput.Interact.canceled += ctx => EndInteract();
+        inputSystem.CharacterInput.Salute.started += ctx => StartSalute();
+        inputSystem.CharacterInput.Salute.canceled += ctx => EndSalute();
+        inputSystem.CharacterInput.Crouch.started += ctx => StartCrouch();
+        inputSystem.CharacterInput.Crouch.canceled += ctx => EndCrouch();
+        inputSystem.CharacterInput.PickUpItem.started += ctx => StartPickUpItem();
     }
 
     private void OnDisable()
@@ -42,33 +41,20 @@ public class PlayerController : MonoBehaviour
         inputSystem.Disable();
         inputSystem.CharacterInput.Move.performed -= ctx => moveInput = ctx.ReadValue<Vector2>();
         inputSystem.CharacterInput.Move.canceled -= ctx => moveInput = Vector2.zero;
-        inputSystem.CharacterInput.Salute.started -= ctx => StartSalute();
-        inputSystem.CharacterInput.Salute.canceled -= ctx => EndSalute();
-        inputSystem.CharacterInput.Crouch.started -= ctx => StartSneak();
-        inputSystem.CharacterInput.Crouch.canceled -= ctx => EndSneak();
         inputSystem.CharacterInput.Interact.started -= ctx => StartInteract();
         inputSystem.CharacterInput.Interact.canceled -= ctx => EndInteract();
+        inputSystem.CharacterInput.Salute.started -= ctx => StartSalute();
+        inputSystem.CharacterInput.Salute.canceled -= ctx => EndSalute();
+        inputSystem.CharacterInput.Crouch.started -= ctx => StartCrouch();
+        inputSystem.CharacterInput.Crouch.canceled -= ctx => EndCrouch();
+        inputSystem.CharacterInput.PickUpItem.started -= ctx => StartPickUpItem();
     }
 
     private void FixedUpdate()
     {
-        if (!isSaluting && !isInteracting)
+        if (!isSaluting)
         {
             MoveCharacter(moveInput);
-        }
-    }
-
-    private void PickUpItem()
-    {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, pickupRadius);
-        foreach (Collider2D collider in colliders)
-        {
-            CollectItem collectible = collider.GetComponent<CollectItem>();
-            if (collectible != null)
-            {
-                collectible.Collect();
-                break; // Nur ein Item aufnehmen
-            }
         }
     }
 
@@ -79,6 +65,22 @@ public class PlayerController : MonoBehaviour
         UpdateAnimation(direction);
     }
 
+    private void StartInteract()
+    {
+        isInteracting = true;
+        rb.velocity = Vector2.zero;
+        animator.SetBool("isInteracting", true);
+        animator.SetBool("isWalking", false);
+    }
+
+    private void EndInteract()
+    {
+        isInteracting = false;
+        rb.velocity = Vector2.zero;
+        animator.SetBool("isInteracting", false);
+        animator.SetBool("isWalking", true);
+    }
+
     public void StartSalute()
     {
         isSaluting = true;
@@ -87,38 +89,27 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("isWalking", false);
     }
 
-    public void StartInteract()
-    {
-        isInteracting = true;
-        rb.velocity = Vector2.zero;
-        animator.SetBool("isInteracting", true);
-        animator.SetBool("isWalking", false);
-    }
-
-    public void EndInteract()
-    {
-        isInteracting = false;
-        rb.velocity = Vector2.zero;
-        animator.SetBool("isInteracting", false);
-        animator.SetBool("isWalking", true);
-    }
-
     private void EndSalute()
     {
         isSaluting = false;
         animator.SetBool("isSaluting", false);
     }
 
-    public void StartSneak()
+    public void StartCrouch()
     {
         isSneaking = true;
-        animator.SetBool("isCrouching", true);
+        animator.SetBool("isSneaking", true);
     }
 
-    private void EndSneak()
+    private void EndCrouch()
     {
         isSneaking = false;
-        animator.SetBool("isCrouching", false);
+        animator.SetBool("isSneaking", false);
+    }
+
+    internal void StartPickUpItem()
+    {
+        Debug.Log("PickUpItem button pressed.");
     }
 
     private void UpdateAnimation(Vector2 direction)
